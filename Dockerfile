@@ -22,3 +22,5 @@ ENV PYTHONUNBUFFERED=1
 
 # 6. Khởi chạy API
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+
+
