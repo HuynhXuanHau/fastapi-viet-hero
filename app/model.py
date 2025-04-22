@@ -10,28 +10,18 @@ MODEL_PATH = "app/models/resnet_model.keras"
 
 def load_resnet_model():
     MODEL_PATH = os.path.join(os.path.dirname(__file__), 'models/resnet50_final_t4_optimized.keras')
-
-    # Định nghĩa hàm loss_fn
-    def loss_fn(y_true, y_pred):
-        return tf.keras.losses.categorical_crossentropy(y_true, y_pred)
-
-    # Thử các phương pháp khác nhau
     try:
-        # Phương pháp 1: Với compile=False và custom_objects
-        model = load_model(MODEL_PATH, compile=False, custom_objects={'loss_fn': loss_fn})
-    except TypeError:
-        try:
-            # Phương pháp 2: Chỉ với custom_objects
-            model = load_model(MODEL_PATH, custom_objects={'loss_fn': loss_fn})
-        except:
-            try:
-                # Phương pháp 3: Chỉ với compile=False
-                model = load_model(MODEL_PATH, compile=False)
-            except:
-                # Phương pháp 4: Load model thông thường
-                model = load_model(MODEL_PATH)
+        from tensorflow.keras.models import load_model
 
-    return model
+        # Thử cách đơn giản nhất trước
+        return load_model(MODEL_PATH)
+    except Exception as e:
+        print(f"Error loading model: {e}")
+        try:
+            import tensorflow as tf
+            return tf.keras.models.load_model(MODEL_PATH)
+        except Exception as e2:
+            print(f"Second attempt failed: {e2}")
 
 
 def preprocess_image(image_bytes):
