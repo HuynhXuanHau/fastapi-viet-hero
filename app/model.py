@@ -31,3 +31,29 @@ def decode_prediction(preds):
         {"label": label, "desc": desc, "confidence": float(score)}
         for (label, desc, score) in decoded
     ]
+
+import logging
+logger = logging.getLogger(__name__)
+
+def load_model():
+    logger.info("Bắt đầu tải model ResNet50...")
+    try:
+        # Mã tải model
+        logger.info("Đang tải các trọng số model...")
+        # ...
+        logger.info("Model đã được tải thành công")
+        return model
+    except Exception as e:
+        logger.error(f"Lỗi khi tải model: {str(e)}")
+        # Có thể raise lại exception hoặc xử lý phù hợp
+        raise
+
+def predict_image(image, model):
+    logger.info("Bắt đầu xử lý ảnh và dự đoán...")
+    try:
+        # Mã dự đoán
+        logger.info("Hoàn tất dự đoán")
+        return result
+    except Exception as e:
+        logger.error(f"Lỗi khi dự đoán ảnh: {str(e)}")
+        raise

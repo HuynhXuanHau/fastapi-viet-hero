@@ -17,5 +17,8 @@ COPY ./app /app/app
 RUN mkdir -p /app/app/models
 RUN wget https://huggingface.co/HXHau/fastapi-viet-hero/resolve/main/resnet50_final_t4_optimized.keras -O /app/app/models/resnet_model.keras
 
+# Đảm bảo không tắt logs
+ENV PYTHONUNBUFFERED=1
+
 # 6. Khởi chạy API
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
