@@ -7,13 +7,19 @@ from PIL import Image
 # Đường dẫn cố định trong Docker
 MODEL_PATH = "app/models/resnet_model.keras"
 
-
 def load_resnet_model():
-    if not os.path.exists(MODEL_PATH):
-        raise FileNotFoundError(f"Không tìm thấy model tại {MODEL_PATH}. Hãy chắc chắn rằng Docker đã tải model đúng.")
+    # Kiểm tra phiên bản TensorFlow
+    tf_version = tf.__version__
 
-    model = load_model(MODEL_PATH, compile=False)
-    print("Model loaded successfully.")
+    if tf_version.startswith('2.'):
+        # TensorFlow 2.x - hỗ trợ compile=False
+        model = load_model(MODEL_PATH, compile=False)
+    else:
+        # TensorFlow 1.x - không hỗ trợ compile=False
+        model = load_model(MODEL_PATH)
+        # Đảm bảo model sẵn sàng cho predict
+        model._make_predict_function()
+
     return model
 
 
