@@ -1,18 +1,21 @@
-# 1. Base image
 FROM python:3.10-slim
 
-# 2. Set working directory
+# 1. Làm việc trong thư mục /app
 WORKDIR /app
 
-# 3. Copy project files
-COPY ./app /app/app
-COPY requirements.txt /app
-
-# 4. Cài dependencies
+# 2. Cài các thư viện cần thiết
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# 5. Expose port (Railway mặc định dùng 8000)
-EXPOSE 8000
+# 3. Cài wget
+RUN apt update && apt install -y wget
 
-# 6. Chạy app FastAPI bằng Uvicorn
+# 4. Copy code FastAPI (trước!)
+COPY ./app /app/app
+
+# 5. Tạo thư mục models/ và tải model từ HuggingFace
+RUN mkdir -p /app/app/models
+RUN wget https://huggingface.co/HXHau/fastapi-viet-hero/resolve/main/resnet50_final_t4_optimized.keras -O /app/app/models/resnet_model.keras
+
+# 6. Khởi chạy API
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
