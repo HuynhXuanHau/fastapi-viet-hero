@@ -3,7 +3,7 @@ import numpy as np
 from tensorflow.keras.models import load_model
 from tensorflow.keras.applications.resnet50 import preprocess_input, decode_predictions
 from PIL import Image
-
+import tensorflow as tf
 # Đường dẫn cố định trong Docker
 MODEL_PATH = "app/models/resnet_model.keras"
 
