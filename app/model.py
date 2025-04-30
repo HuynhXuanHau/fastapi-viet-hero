@@ -4,20 +4,24 @@ from PIL import Image
 import tensorflow as tf
 import requests
 
-
-# Fixed path for Docker
-MODEL_PATH = 'app/models/resnet50_final_t4_optimized.keras'
+# URL để tải model
 MODEL_URL = "https://huggingface.co/HXHau/fastapi-viet-hero/resolve/main/resnet50_final_t4_optimized.keras"
+# Đường dẫn local để lưu và load model
+MODEL_PATH = "app/models/resnet50_final_t4_optimized.keras"
 
 def download_model_if_missing():
     if not os.path.exists(MODEL_PATH):
         print("Model not found. Downloading...")
         os.makedirs(os.path.dirname(MODEL_PATH), exist_ok=True)
+        response = requests.get(MODEL_URL)
+        response.raise_for_status()  # Gây lỗi nếu request thất bại
         with open(MODEL_PATH, "wb") as f:
-            f.write(requests.get(MODEL_URL).content)
+            f.write(response.content)
+        print("Model downloaded successfully.")
+
 def load_resnet_model():
     try:
-        # Load the model without compiling it
+        download_model_if_missing()
         model = tf.keras.models.load_model(MODEL_PATH, compile=False)
         print("Model loaded successfully")
         return model
@@ -38,4 +42,3 @@ def decode_prediction(preds):
         {"label": label, "desc": desc, "confidence": float(score)}
         for (label, desc, score) in decoded
     ]
-
