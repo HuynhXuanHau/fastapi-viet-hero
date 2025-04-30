@@ -1,13 +1,24 @@
 import os
 from fastapi import FastAPI
 import psutil
+from fastapi.middleware.cors import CORSMiddleware
 
 # Tạo ứng dụng FastAPI
 app = FastAPI(title="ResNet50 Image Classification API")
 
+# Thêm CORS middleware để cho phép truy cập từ web client
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Cho phép tất cả origins trong môi trường phát triển
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
 # Import routes sau khi cấu hình để giảm thiểu việc sử dụng bộ nhớ
 @app.on_event("startup")
 async def startup_event():
+    """Thực hiện các tác vụ khởi tạo app."""
     # Import routes sau khi khởi động để trì hoãn việc tải model
     from app.routes import router
     app.include_router(router)
@@ -22,6 +33,7 @@ def health_check():
 
 @app.get("/memory")
 def memory_usage():
+    """Endpoint theo dõi việc sử dụng bộ nhớ."""
     process = psutil.Process(os.getpid())
     memory_info = process.memory_info()
     memory_mb = memory_info.rss / 1024 / 1024
