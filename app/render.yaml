@@ -2,18 +2,28 @@ services:
   - type: web
     name: resnet-api
     env: python
-    buildCommand: pip install -r requirements.txt
-    startCommand: gunicorn app.main:app --workers 2 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
     plan: free
+    buildCommand: |
+      pip install -r requirements.txt &&
+      python -c "from app.model import download_model_if_missing; download_model_if_missing()"
+    startCommand: |
+      gunicorn app.main:app \
+      --workers 1 \
+      --worker-class uvicorn.workers.UvicornWorker \
+      --bind 0.0.0.0:$PORT \
+      --timeout 120 \
+      --preload
     runtime: python3
     envVars:
       - key: PYTHON_VERSION
         value: 3.10
-      - key: TF_CPP_MIN_LOG_LEVEL  # Giảm log của TensorFlow
-        value: 3
-      - key: TF_FORCE_GPU_ALLOW_GROWTH # Ngăn TensorFlow chiếm quá nhiều bộ nhớ GPU
-        value: true
+      - key: TF_CPP_MIN_LOG_LEVEL
+        value: "3"  # Giảm log TensorFlow (phải là string)
+      - key: TF_FORCE_GPU_ALLOW_GROWTH
+        value: "true"  # Giá trị boolean phải là string
       - key: TFHUB_CACHE_DIR
         value: /tmp/tfhub_modules
       - key: TRANSFORMERS_CACHE
         value: /tmp/huggingface
+      - key: GUNICORN_CMD_ARGS  # Thêm cấu hình bổ sung cho Gunicorn
+        value: "--worker-tmp-dir /dev/shm --limit-request-line 8190"
