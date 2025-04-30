@@ -1,18 +1,22 @@
 import os
 from fastapi import FastAPI
 import psutil
+from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
+from app.routes import router
 
 # Tạo ứng dụng FastAPI
-app = FastAPI(title="ResNet50 Image Classification API")
-
 # Thêm CORS middleware để cho phép truy cập từ web client
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # Cho phép tất cả origins trong môi trường phát triển
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+app = FastAPI(title="ResNet50 Image Classification API",
+    middleware=[
+        Middleware(
+            CORSMiddleware,
+            allow_origins=["*"],
+            allow_credentials=True,
+            allow_methods=["*"],
+            allow_headers=["*"],
+        )
+    ]
 )
 
 # Import routes sau khi cấu hình để giảm thiểu việc sử dụng bộ nhớ
@@ -20,7 +24,6 @@ app.add_middleware(
 async def startup_event():
     """Thực hiện các tác vụ khởi tạo app."""
     # Import routes sau khi khởi động để trì hoãn việc tải model
-    from app.routes import router
     app.include_router(router)
 
 @app.get("/")

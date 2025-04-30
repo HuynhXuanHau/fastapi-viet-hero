@@ -477,63 +477,42 @@
         }
 
         // Display results function
-        function displayResults(data) {
-            resultsContentEl.innerHTML = '';
+        // Display results function
+function displayResults(data) {
+    resultsContentEl.innerHTML = '';
 
-            if (data.predictions && Array.isArray(data.predictions)) {
-                data.predictions.forEach(prediction => {
-                    const resultItem = document.createElement('div');
-                    resultItem.className = 'result-item';
+    if (data.predictions && Array.isArray(data.predictions)) {
+        data.predictions.forEach(prediction => {
+            const resultItem = document.createElement('div');
+            resultItem.className = 'result-item';
 
-                    // Format confidence as percentage
-                    const confidence = Math.round(prediction.confidence * 100);
+            // Format confidence as percentage
+            const confidence = Math.round(prediction.confidence * 100);
 
-                    resultItem.innerHTML = `
-                        <h3>${prediction.desc}</h3>
-                        <p>Label: ${prediction.label}</p>
-                        <p>Confidence: ${confidence}%</p>
-                        <div class="confidence-bar" style="width: ${confidence}%"></div>
-                    `;
+            // Hiển thị tên anh hùng thay vì desc (nếu có)
+            const heroName = prediction.name || prediction.desc || `Class ${prediction.label}`;
 
-                    resultsContentEl.appendChild(resultItem);
-                });
-            } else if (data.error) {
-                showError(data.error);
-                return;
-            } else {
-                // Handle direct array response or other structure
-                let predictions = data;
+            resultItem.innerHTML = `
+                <h3>${heroName}</h3>
+                <p>Mã nhận dạng: ${prediction.label}</p>
+                <p>Độ chính xác: ${confidence}%</p>
+                <div class="confidence-bar" style="width: ${confidence}%"></div>
+            `;
 
-                if (!Array.isArray(predictions)) {
-                    // Try to find predictions array elsewhere in the response
-                    if (data.results) predictions = data.results;
-                    else if (data.output) predictions = data.output;
-                    else predictions = [data]; // fallback to showing raw data
-                }
+            resultsContentEl.appendChild(resultItem);
+        });
+    } else if (data.error) {
+        showError(data.error);
+        return;
+    } else {
+        // Xử lý các định dạng response khác
+        showError('Unexpected response format from API');
+        console.error('Unexpected response:', data);
+    }
 
-                predictions.forEach(prediction => {
-                    const resultItem = document.createElement('div');
-                    resultItem.className = 'result-item';
-
-                    // Try to extract values with different possible field names
-                    const label = prediction.label || prediction.class || prediction.className || '?';
-                    const desc = prediction.desc || prediction.description || prediction.name || label;
-                    const confidence = Math.round((prediction.confidence || prediction.score || prediction.probability || 0) * 100);
-
-                    resultItem.innerHTML = `
-                        <h3>${desc}</h3>
-                        <p>Label: ${label}</p>
-                        <p>Confidence: ${confidence}%</p>
-                        <div class="confidence-bar" style="width: ${confidence}%"></div>
-                    `;
-
-                    resultsContentEl.appendChild(resultItem);
-                });
-            }
-
-            // Show results container
-            resultsEl.style.display = 'block';
-        }
+    // Show results container
+    resultsEl.style.display = 'block';
+}
 
         // Show error function
         function showError(message) {

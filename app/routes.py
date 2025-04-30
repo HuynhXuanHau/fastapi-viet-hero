@@ -1,3 +1,4 @@
+import tensorflow as tf
 from fastapi import APIRouter, File, UploadFile, BackgroundTasks
 from fastapi.responses import JSONResponse
 import io
@@ -8,15 +9,6 @@ router = APIRouter()
 
 # Lazy load model chỉ khi cần thiết
 _model = None
-
-# Thêm CORS headers cho tất cả responses
-@router.middleware("http")
-async def add_cors_header(request, call_next):
-    response = await call_next(request)
-    response.headers["Access-Control-Allow-Origin"] = "*"
-    response.headers["Access-Control-Allow-Methods"] = "GET, POST, OPTIONS"
-    response.headers["Access-Control-Allow-Headers"] = "*"
-    return response
 
 @router.options("/predict")
 async def options_predict():
@@ -48,49 +40,56 @@ async def predict(file: UploadFile = File(...), background_tasks: BackgroundTask
     """
     Nhận ảnh và trả về kết quả phân loại.
     """
-    # Kiểm tra định dạng file
-    if not file.content_type.startswith("image/"):
-        return JSONResponse(
-            status_code=400,
-            content={"error": f"Invalid file type: {file.content_type}. Only image files are accepted."}
-        )
-
     try:
-        # Đọc nội dung file
-        contents = await file.read()
+    # Kiểm tra định dạng file
+        if not file.content_type.startswith("image/"):
+            return JSONResponse(
+                status_code=400,
+                content={"error": f"Invalid file type: {file.content_type}. Only image files are accepted."}
+            )
 
-        # Xử lý ảnh và dự đoán
-        from app.model import preprocess_image, decode_prediction
+        try:
+            # Đọc nội dung file
+            contents = await file.read()
 
-        # Tiền xử lý ảnh
-        processed = preprocess_image(io.BytesIO(contents))
+            # Xử lý ảnh và dự đoán
+            from app.model import preprocess_image, decode_prediction
 
-        # Lấy model và dự đoán
-        model = get_model()
-        preds = model.predict(processed)
+            # Tiền xử lý ảnh
+            processed = preprocess_image(io.BytesIO(contents))
 
-        # Giải mã kết quả
-        results = decode_prediction(preds)
+            # Lấy model và dự đoán
+            model = get_model()
+            preds = model.predict(processed)
 
-        # Thêm thông tin file
-        response = {
-            "filename": file.filename,
-            "content_type": file.content_type,
-            "predictions": results
-        }
+            # Giải mã kết quả
+            results = decode_prediction(preds)
 
-        # Dọn dẹp bộ nhớ trong background
-        if background_tasks:
-            background_tasks.add_task(cleanup_memory)
+            # Thêm thông tin file
+            response = {
+                "filename": file.filename,
+                "content_type": file.content_type,
+                "predictions": results
+            }
 
-        return response
-    except Exception as e:
-        # Dọn dẹp bộ nhớ nếu có lỗi
-        gc.collect()
+            # Dọn dẹp bộ nhớ trong background
+            if background_tasks:
+                background_tasks.add_task(cleanup_memory)
+
+            return response
+        except Exception as e:
+            # Dọn dẹp bộ nhớ nếu có lỗi
+            gc.collect()
+            return JSONResponse(
+                status_code=500,
+                content={"error": f"Error processing image: {str(e)}"}
+            )
+    except tf.errors.ResourceExhaustedError:
         return JSONResponse(
             status_code=500,
-            content={"error": f"Error processing image: {str(e)}"}
+            content={"error": "Memory exhausted, please try with a smaller image"}
         )
+
 
 
 def cleanup_memory():

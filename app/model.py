@@ -112,10 +112,105 @@ def preprocess_image(image_bytes):
     return array
 
 
-def decode_prediction(preds):
-    """Giải mã kết quả dự đoán."""
-    decoded = tf.keras.applications.resnet50.decode_predictions(preds, top=3)[0]
-    return [
-        {"label": label, "desc": desc, "confidence": float(score)}
-        for (label, desc, score) in decoded
-    ]
+CLASS_NAMES = [
+    "Bao_Dai",
+    "Be_Van_Dan",
+    "Bui_Van_Nguyen",
+    "Bui_Xuan_Phai",
+    "Che_Lan_Vien",
+    "Cu_Chinh_Lan",
+    "Dang_Thuy_Tram",
+    "Do_Muoi",
+    "Dong_Khanh",
+    "Dong_Sy_Nguyen",
+    "Duy_Tan",
+    "Ha_Huy_Tap",
+    "Ho_Chi_Minh",
+    "Hoang_Dieu",
+    "Hoang_Ngoc_Phach",
+    "Hoang_Quoc_Viet",
+    "Hoang_Quy",
+    "Hoang_Van_Thu",
+    "Huy_Can",
+    "Khai_Dinh",
+    "La_Van_Cau",
+    "Le_Duan",
+    "Le_Duc_Anh",
+    "Le_Duc_Tho",
+    "Le_Quang_Dao",
+    "Le_Trong_Tan",
+    "Le_Van_Dung",
+    "Le_Van_Tam",
+    "Luong_Dinh_Cua",
+    "Nam_Cao",
+    "Nguyen_Chi_Thanh",
+    "Nguyen_Dinh_Thi",
+    "Nguyen_Duy_Trinh",
+    "Nguyen_Huu_Tho",
+    "Nguyen_Luong_Bang",
+    "Nguyen_Si_Sach",
+    "Nguyen_Thai_Hoc",
+    "Nguyen_Thi_Binh",
+    "Nguyen_Thi_Dinh",
+    "Nguyen_Thi_Minh_Khai",
+    "Nguyen_Tuan",
+    "Nguyen_Van_Bay",
+    "Nguyen_Van_Linh",
+    "Nguyen_Van_Troi",
+    "Nguyen_Xuan_Khoat",
+    "Pham_Duy",
+    "Pham_Quynh",
+    "Pham_Van_Lai",
+    "Phan_Boi_Chau",
+    "Phan_Chau_Trinh",
+    "Phan_Dang_Luu",
+    "Phan_Dinh_Giot",
+    "Phan_Khoi",
+    "Phan_Thanh_Gian",
+    "Ta_Quang_Buu",
+    "Thanh_Thai",
+    "To_Huu",
+    "Ton_Duc_Thang",
+    "Ton_That_Thuyet",
+    "Tran_Dai_Nghia",
+    "Tran_Phu",
+    "Tran_Trong_Kim",
+    "Tran_Van_Tra",
+    "Trinh_Dinh_Cuu",
+    "Truong_Chinh",
+    "Truong_Dinh",
+    "Van_Tien_Dung",
+    "Vo_Nguyen_Giap",
+    "Vo_Thi_Sau",
+    "Vo_Thi_Thang",
+    "Vo_Van_Huyen",
+    "Vo_Van_Kiet",
+    "Vu_Mao",
+    "Vu_Ngoc_Phan",
+    "Vu_Quang_Huy",
+    "Vu_Thu_Hien",
+    "Xuan_Dieu",
+    "Xuan_Thuy"
+]
+
+
+def decode_prediction(preds, class_names=CLASS_NAMES):
+    """
+    Giải mã kết quả dự đoán
+    :param preds: Kết quả dự đoán từ model
+    :param class_names: Danh sách tên class (nếu không có sẽ trả về dạng Class X)
+    """
+    # Lấy top 3 predictions
+    top_indices = np.argsort(preds[0])[-3:][::-1]
+    top_probs = preds[0][top_indices]
+
+    if class_names is not None:
+        return [
+            {"label": str(idx), "name": class_names[idx], "confidence": float(prob)}
+            for idx, prob in zip(top_indices, top_probs)
+        ]
+    else:
+        return [
+            {"label": str(idx), "name": f"Class {idx}", "confidence": float(prob)}
+            for idx, prob in zip(top_indices, top_probs)
+        ]
