@@ -423,58 +423,52 @@
         }
 
         // Analyze image function
-        function analyzeImage() {
-            const apiUrl = apiUrlInput.value.trim();
-            const file = fileInput.files[0];
+        // Analyze image function
+function analyzeImage() {
+    const apiUrl = apiUrlInput.value.trim();
+    const file = fileInput.files[0];
 
-            if (!apiUrl) {
-                showError('Please enter the API URL');
-                return;
-            }
+    if (!apiUrl) {
+        showError('Vui lòng nhập API URL');
+        return;
+    }
 
-            if (!file) {
-                showError('Please select an image');
-                return;
-            }
+    if (!file) {
+        showError('Vui lòng chọn ảnh');
+        return;
+    }
 
-            // Show loading animation
-            loadingEl.style.display = 'block';
-            resultsEl.style.display = 'none';
-            errorMessageEl.style.display = 'none';
+    // Show loading animation
+    loadingEl.style.display = 'block';
+    resultsEl.style.display = 'none';
+    errorMessageEl.style.display = 'none';
 
-            // Prepare form data
-            const formData = new FormData();
-            formData.append('file', file);
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('file', file);
 
-            // Send request to API
-            fetch(apiUrl, {
-                method: 'POST',
-                body: formData
-            })
-            .then(response => {
-                if (!response.ok) {
-                    return response.json().then(err => {
-                        throw new Error(err.error || 'API request failed');
-                    });
-                }
-                return response.json();
-            })
-            .then(data => {
-                // Hide loading animation
-                loadingEl.style.display = 'none';
-
-                // Display results
-                displayResults(data);
-            })
-            .catch(error => {
-                // Hide loading animation
-                loadingEl.style.display = 'none';
-
-                // Show error message
-                showError(error.message || 'Failed to connect to API');
-                console.error('API request failed:', error);
-            });
+    // Send request to API
+    fetch(apiUrl, {
+        method: 'POST',
+        body: formData
+    })
+    .then(async response => {
+        if (!response.ok) {
+            const error = await response.json().catch(() => ({ error: response.statusText }));
+            throw new Error(error.error || `Lỗi từ API: ${response.status}`);
         }
+        return response.json();
+    })
+    .then(data => {
+        loadingEl.style.display = 'none';
+        displayResults(data);
+    })
+    .catch(error => {
+        loadingEl.style.display = 'none';
+        showError(error.message || 'Không thể kết nối tới API');
+        console.error('API request failed:', error);
+    });
+}
 
         // Display results function
         // Display results function
