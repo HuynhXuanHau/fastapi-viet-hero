@@ -1,8 +1,6 @@
 fastapi
-uvicorn
 pillow
 numpy
-tensorflow==2.16.1
+tensorflow==2.15.1
 python-multipart
-gunicorn
 psutil
