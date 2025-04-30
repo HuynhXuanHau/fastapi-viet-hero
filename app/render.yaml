@@ -3,9 +3,13 @@ services:
     name: resnet-api
     env: python
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port 8000
+    startCommand: gunicorn app.main:app --workers 1 --worker-class uvicorn.workers.UvicornWorker --bind 0.0.0.0:$PORT
     plan: free
-    runtime:
+    runtime: python3
     envVars:
       - key: PYTHON_VERSION
         value: 3.10
+      - key: TF_CPP_MIN_LOG_LEVEL  # Giảm log của TensorFlow
+        value: 3
+      - key: TF_FORCE_GPU_ALLOW_GROWTH # Ngăn TensorFlow chiếm quá nhiều bộ nhớ GPU
+        value: true
