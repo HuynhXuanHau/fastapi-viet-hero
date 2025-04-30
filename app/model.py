@@ -6,8 +6,8 @@ import requests
 
 
 # Fixed path for Docker
-MODEL_PATH = os.path.join(os.path.dirname(__file__), 'models', 'resnet50_final_t4_optimized.keras')
-MODEL_URL = "https://huggingface.co/HXHau/fastapi-viet-hero/resolve/main/resnet50_final_t4_optimized.keras -O /app/app/models/resnet50_final_t4_optimized.keras"
+MODEL_PATH = 'app/models/resnet50_final_t4_optimized.keras'
+MODEL_URL = "https://huggingface.co/HXHau/fastapi-viet-hero/resolve/main/resnet50_final_t4_optimized.keras"
 
 def download_model_if_missing():
     if not os.path.exists(MODEL_PATH):
