@@ -15,7 +15,7 @@ COPY ./app /app/app
 
 # 5. Tạo thư mục models/ và tải model từ HuggingFace
 RUN mkdir -p /app/app/models
-RUN wget https://huggingface.co/HXHau/fastapi-viet-hero/resolve/main/resnet50_final_t4_optimized.keras -O /app/app/models/resnet_model.keras
+RUN wget https://huggingface.co/HXHau/fastapi-viet-hero/resolve/main/resnet50_final_t4_optimized.keras -O /app/app/models/resnet50_final_t4_optimized.keras
 
 # Đảm bảo không tắt logs
 ENV PYTHONUNBUFFERED=1
