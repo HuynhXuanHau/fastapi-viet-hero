@@ -13,3 +13,7 @@ services:
         value: 3
       - key: TF_FORCE_GPU_ALLOW_GROWTH # Ngăn TensorFlow chiếm quá nhiều bộ nhớ GPU
         value: true
+      - key: TFHUB_CACHE_DIR
+        value: /tmp/tfhub_modules
+      - key: TRANSFORMERS_CACHE
+        value: /tmp/huggingface
