@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResNet50 Image Recognition API Tester</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+
+        h1 {
+            color: #2c3e50;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .container {
+            background-color: white;
+            border-radius: 8px;
+            padding: 20px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        .file-upload {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            border: 2px dashed #2c3e50;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-upload:hover {
+            background-color: #e9ecef;
+        }
+
+        .file-upload input {
+            display: none;
+        }
+
+        .preview {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #preview-image {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        .buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+
+        .submit-btn {
+            background-color: #3498db;
+            color: white;
+        }
+
+        .submit-btn:hover {
+            background-color: #2980b9;
+        }
+
+        .reset-btn {
+            background-color: #e74c3c;
+            color: white;
+        }
+
+        .reset-btn:hover {
+            background-color: #c0392b;
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 8px;
+            background-color: #2c3e50;
+            color: white;
+            display: none;
+        }
+
+        .result-item {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .confidence-bar {
+            height: 10px;
+            background-color: #3498db;
+            border-radius: 5px;
+            margin-top: 5px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-left-color: #3498db;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        .error {
+            background-color: #e74c3c;
+            color: white;
+            padding: 10px;
+            border-radius: 4px;
+            margin-top: 20px;
+            display: none;
+        }
+
+        .api-status {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            display: inline-block;
+            background-color: #95a5a6;
+        }
+
+        .status-text {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+    </style>
+</head>
+<body>
+    <h1>ResNet50 Image Recognition API Tester</h1>
+
+    <div class="container">
+        <div class="api-status">
+            <span class="status-indicator" id="status-indicator"></span>
+            <span class="status-text" id="status-text">Checking API status...</span>
+        </div>
+
+        <div class="form-group">
+            <label for="api-url">API URL:</label>
+            <input type="text" id="api-url" placeholder="Enter your API URL (e.g., https://your-api.onrender.com/predict)">
+        </div>
+
+        <div class="file-upload" id="file-upload-area">
+            <input type="file" id="file-input" accept="image/*">
+            <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#2c3e50" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="17 8 12 3 7 8"></polyline>
+                <line x1="12" y1="3" x2="12" y2="15"></line>
+            </svg>
+            <p>Click or drag image here to upload</p>
+        </div>
+
+        <div class="preview">
+            <img id="preview-image" src="#" alt="Preview">
+        </div>
+
+        <div class="buttons">
+            <button class="submit-btn" id="submit-btn" disabled>Analyze Image</button>
+            <button class="reset-btn" id="reset-btn">Reset</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Processing image, please wait...</p>
+        </div>
+
+        <div class="error" id="error-message"></div>
+    </div>
+
+    <div class="results" id="results">
+        <h2>Recognition Results</h2>
+        <div id="results-content"></div>
+    </div>
+
+    <footer>
+        &copy; 2025 ResNet50 API Tester | Made for testing your image recognition API
+    </footer>
+
+    <script>
+        // DOM elements
+        const apiUrlInput = document.getElementById('api-url');
+        const fileInput = document.getElementById('file-input');
+        const fileUploadArea = document.getElementById('file-upload-area');
+        const previewImage = document.getElementById('preview-image');
+        const submitBtn = document.getElementById('submit-btn');
+        const resetBtn = document.getElementById('reset-btn');
+        const loadingEl = document.getElementById('loading');
+        const resultsEl = document.getElementById('results');
+        const resultsContentEl = document.getElementById('results-content');
+        const errorMessageEl = document.getElementById('error-message');
+        const statusIndicator = document.getElementById('status-indicator');
+        const statusText = document.getElementById('status-text');
+
+        // Check local storage for previously used API URL
+        const savedApiUrl = localStorage.getItem('resnet_api_url');
+        if (savedApiUrl) {
+            apiUrlInput.value = savedApiUrl;
+            checkApiStatus(savedApiUrl);
+        } else {
+            statusIndicator.style.backgroundColor = '#95a5a6'; // gray
+            statusText.textContent = 'Please enter API URL';
+        }
+
+        // Event listeners
+        fileUploadArea.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                const file = e.target.files[0];
+
+                // Check if file is an image
+                if (!file.type.match('image.*')) {
+                    showError('Please select an image file (JPEG, PNG, etc.)');
+                    return;
+                }
+
+                // Display preview
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+
+                // Enable submit button if API URL is also filled
+                if (apiUrlInput.value.trim() !== '') {
+                    submitBtn.disabled = false;
+                }
+            }
+        });
+
+        apiUrlInput.addEventListener('input', () => {
+            const apiUrl = apiUrlInput.value.trim();
+
+            // Enable submit button if a file is selected and URL is not empty
+            if (fileInput.files && fileInput.files[0] && apiUrl !== '') {
+                submitBtn.disabled = false;
+            } else {
+                submitBtn.disabled = true;
+            }
+
+            // Save to local storage
+            if (apiUrl !== '') {
+                localStorage.setItem('resnet_api_url', apiUrl);
+                checkApiStatus(apiUrl);
+            }
+        });
+
+        submitBtn.addEventListener('click', analyzeImage);
+
+        resetBtn.addEventListener('click', () => {
+            fileInput.value = '';
+            previewImage.src = '#';
+            previewImage.style.display = 'none';
+            submitBtn.disabled = true;
+            resultsEl.style.display = 'none';
+            errorMessageEl.style.display = 'none';
+        });
+
+        // File drop functionality
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, preventDefaults, false);
+        });
+
+        function preventDefaults(e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+
+        ['dragenter', 'dragover'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, highlight, false);
+        });
+
+        ['dragleave', 'drop'].forEach(eventName => {
+            fileUploadArea.addEventListener(eventName, unhighlight, false);
+        });
+
+        function highlight() {
+            fileUploadArea.style.backgroundColor = '#e9ecef';
+            fileUploadArea.style.borderColor = '#3498db';
+        }
+
+        function unhighlight() {
+            fileUploadArea.style.backgroundColor = '#f8f9fa';
+            fileUploadArea.style.borderColor = '#2c3e50';
+        }
+
+        fileUploadArea.addEventListener('drop', handleDrop, false);
+
+        function handleDrop(e) {
+            const dt = e.dataTransfer;
+            const files = dt.files;
+
+            if (files && files[0]) {
+                fileInput.files = files;
+
+                // Trigger change event
+                const event = new Event('change', { bubbles: true });
+                fileInput.dispatchEvent(event);
+            }
+        }
+
+        // Check API status
+        function checkApiStatus(url) {
+            // Extract base URL for health check
+            let baseUrl;
+            try {
+                // Extract everything before the last path segment
+                const urlObj = new URL(url);
+                const pathSegments = urlObj.pathname.split('/');
+                pathSegments.pop(); // Remove last segment (assume it's "predict")
+                urlObj.pathname = pathSegments.join('/');
+
+                if (urlObj.pathname === '') {
+                    urlObj.pathname = '/';
+                }
+
+                baseUrl = urlObj.toString();
+
+                // Ensure the URL ends with /health
+                if (!baseUrl.endsWith('/')) {
+                    baseUrl += '/';
+                }
+                baseUrl += 'health';
+            } catch(e) {
+                statusIndicator.style.backgroundColor = '#e74c3c'; // red
+                statusText.textContent = 'Invalid API URL';
+                return;
+            }
+
+            statusIndicator.style.backgroundColor = '#f39c12'; // orange
+            statusText.textContent = 'Checking API status...';
+
+            fetch(baseUrl)
+                .then(response => {
+                    if (response.ok) {
+                        return response.json();
+                    }
+                    throw new Error('API health check failed');
+                })
+                .then(data => {
+                    if (data.status === 'ok') {
+                        statusIndicator.style.backgroundColor = '#2ecc71'; // green
+                        statusText.textContent = 'API is online';
+                    } else {
+                        statusIndicator.style.backgroundColor = '#e74c3c'; // red
+                        statusText.textContent = 'API is not responding correctly';
+                    }
+                })
+                .catch(error => {
+                    statusIndicator.style.backgroundColor = '#e74c3c'; // red
+                    statusText.textContent = 'API is offline or unreachable';
+                    console.error('API status check failed:', error);
+                });
+        }
+
+        // Analyze image function
+        function analyzeImage() {
+            const apiUrl = apiUrlInput.value.trim();
+            const file = fileInput.files[0];
+
+            if (!apiUrl) {
+                showError('Please enter the API URL');
+                return;
+            }
+
+            if (!file) {
+                showError('Please select an image');
+                return;
+            }
+
+            // Show loading animation
+            loadingEl.style.display = 'block';
+            resultsEl.style.display = 'none';
+            errorMessageEl.style.display = 'none';
+
+            // Prepare form data
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Send request to API
+            fetch(apiUrl, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(err => {
+                        throw new Error(err.error || 'API request failed');
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                // Hide loading animation
+                loadingEl.style.display = 'none';
+
+                // Display results
+                displayResults(data);
+            })
+            .catch(error => {
+                // Hide loading animation
+                loadingEl.style.display = 'none';
+
+                // Show error message
+                showError(error.message || 'Failed to connect to API');
+                console.error('API request failed:', error);
+            });
+        }
+
+        // Display results function
+        function displayResults(data) {
+            resultsContentEl.innerHTML = '';
+
+            if (data.predictions && Array.isArray(data.predictions)) {
+                data.predictions.forEach(prediction => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+
+                    // Format confidence as percentage
+                    const confidence = Math.round(prediction.confidence * 100);
+
+                    resultItem.innerHTML = `
+                        <h3>${prediction.desc}</h3>
+                        <p>Label: ${prediction.label}</p>
+                        <p>Confidence: ${confidence}%</p>
+                        <div class="confidence-bar" style="width: ${confidence}%"></div>
+                    `;
+
+                    resultsContentEl.appendChild(resultItem);
+                });
+            } else if (data.error) {
+                showError(data.error);
+                return;
+            } else {
+                // Handle direct array response or other structure
+                let predictions = data;
+
+                if (!Array.isArray(predictions)) {
+                    // Try to find predictions array elsewhere in the response
+                    if (data.results) predictions = data.results;
+                    else if (data.output) predictions = data.output;
+                    else predictions = [data]; // fallback to showing raw data
+                }
+
+                predictions.forEach(prediction => {
+                    const resultItem = document.createElement('div');
+                    resultItem.className = 'result-item';
+
+                    // Try to extract values with different possible field names
+                    const label = prediction.label || prediction.class || prediction.className || '?';
+                    const desc = prediction.desc || prediction.description || prediction.name || label;
+                    const confidence = Math.round((prediction.confidence || prediction.score || prediction.probability || 0) * 100);
+
+                    resultItem.innerHTML = `
+                        <h3>${desc}</h3>
+                        <p>Label: ${label}</p>
+                        <p>Confidence: ${confidence}%</p>
+                        <div class="confidence-bar" style="width: ${confidence}%"></div>
+                    `;
+
+                    resultsContentEl.appendChild(resultItem);
+                });
+            }
+
+            // Show results container
+            resultsEl.style.display = 'block';
+        }
+
+        // Show error function
+        function showError(message) {
+            errorMessageEl.textContent = message;
+            errorMessageEl.style.display = 'block';
+        }
+    </script>
+</body>
+</html>
