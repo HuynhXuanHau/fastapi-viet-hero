@@ -1,9 +1,11 @@
 import os
+
+import numpy as np
 from fastapi import FastAPI
 import psutil
 from fastapi.middleware import Middleware
 from fastapi.middleware.cors import CORSMiddleware
-from app.routes import router
+from app.routes import router, get_model
 
 # Tạo ứng dụng FastAPI
 # Thêm CORS middleware để cho phép truy cập từ web client
@@ -32,7 +34,12 @@ def root():
 
 @app.get("/health")
 def health_check():
-    return {"status": "ok"}
+    # Gọi model nhẹ để giữ nó trong RAM
+    try:
+        get_model().predict(np.zeros((1, 224, 224, 3)))
+        return {"status": "ok"}
+    except:
+        return {"status": "error"}, 500
 
 @app.get("/memory")
 def memory_usage():
